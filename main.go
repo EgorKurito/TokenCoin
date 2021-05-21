@@ -3,6 +3,7 @@ package main
 import (
 	"egorkurito/myBlockChain/blockchain"
 	"fmt"
+	"strconv"
 )
 
 func main() {
@@ -16,5 +17,9 @@ func main() {
 		fmt.Printf("Previous hash: %x\n", block.PrevHash)
 		fmt.Printf("data: %s\n", block.Data)
 		fmt.Printf("hash: %x\n\n", block.Hash)
+
+		pow := blockchain.NewProofOfWork(block)
+		fmt.Printf("Pow: %s\n", strconv.FormatBool(pow.Validate()))
+		fmt.Println()
 	}
 }
