@@ -2,11 +2,18 @@ package blockchain
 
 import (
 	"fmt"
+	"os"
+	"runtime"
 
 	"github.com/dgraph-io/badger" // This is our database import
 )
 
-const dbPath = "./tmp/blocks"
+const (
+	dbPath = "./tmp/blocks"
+	dbFile = "./tmp/blocks/MANIFEST"
+
+	genesisData = "First Transaction from Genesis"
+)
 
 type BlockChain struct {
 	LastHash []byte
@@ -18,14 +25,46 @@ type BlockChainIterator struct {
 	Database    *badger.DB
 }
 
-type Block struct {
-	Hash     []byte
-	Data     []byte
-	PrevHash []byte
-	Nonce    int
+func DBExists(db string) bool {
+	if _, err := os.Stat(db); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
 
-func InitBlockChain() *BlockChain {
+func InitBlockChain(address string) *BlockChain {
+	var lastHash []byte
+
+	if DBExists(dbFile) {
+		fmt.Println("blockchain already exists")
+		runtime.Goexit()
+	}
+
+	opts := badger.DefaultOptions(dbPath)
+	db, err := badger.Open(opts)
+	if err != nil {
+		LogErrHandle(err)
+	}
+
+	err = db.Update(func(txn *badger.Txn) error {
+		cbtx := CoinbaseTX(address, genesisData)
+		genesis := Genesis(cbtx)
+		fmt.Println("Genesis Created")
+
+		err := txn.Set(genesis.Hash, genesis.Serialize())
+		if err != nil {
+			LogErrHandle(err)
+		}
+
+		err = txn.Set([]byte("lh"), genesis.Hash)
+
+		lastHash = genesis.Hash
+
+		return err
+	})
+}
+
+func OldInitBlockChain() *BlockChain {
 	var lastHash []byte
 
 	opts := badger.DefaultOptions(dbPath)
