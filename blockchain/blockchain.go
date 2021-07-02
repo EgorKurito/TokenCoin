@@ -108,7 +108,7 @@ func ContinueBlockChain(address string) *BlockChain {
 	return &chain
 }
 
-func (chain *BlockChain) AddBlock(data string) {
+func (chain *BlockChain) AddBlock(transactions []*Transaction) {
 	var lastHash []byte
 
 	if err := chain.Database.View(func(txn *badger.Txn) error {
@@ -128,7 +128,7 @@ func (chain *BlockChain) AddBlock(data string) {
 		LogErrHandle(err)
 	}
 
-	newBlock := CreateBlock(data, lastHash)
+	newBlock := CreateBlock(transactions, lastHash)
 
 	if err := chain.Database.Update(func(transaction *badger.Txn) error {
 		err := transaction.Set(newBlock.Hash, newBlock.Serialize())
@@ -233,6 +233,7 @@ Work:
 			}
 		}
 	}
+	return accumulated, unspentOuts
 }
 
 func (iterator *BlockChainIterator) Next() *Block {
