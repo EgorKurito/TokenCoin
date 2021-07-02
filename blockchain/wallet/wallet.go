@@ -5,6 +5,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
+	"egorkurito/myBlockChain/base58"
 	"golang.org/x/crypto/ripemd160"
 	"log"
 )
@@ -57,7 +58,7 @@ func (w *Wallet) Address() []byte {
 	versionedHash := append([]byte{version}, pubHash...)
 	checksum := Checksum(versionedHash)
 	finalHash := append(versionedHash, checksum...)
-	address := base58Encode(finalHash)
+	address := base58.Base58Encode(finalHash)
 
 	return address
 }
