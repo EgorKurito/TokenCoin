@@ -2,15 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ca87dd28-4fd9-4722-aa4f-484af7967adf" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/base58/base58_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/util/errors.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/base58/util.go" beforeDir="false" afterPath="$PROJECT_DIR$/base58/base58.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blockchain/wallet/wallet.go" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/wallet/wallet.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/block.go" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/block.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/blockchain.go" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/blockchain.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/proof.go" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/proof.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/transaction.go" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/transaction.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +44,7 @@
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="application.passwordSafe" />
+    <property name="settings.editor.selected.configurable" value="vcs.Mercurial" />
   </component>
   <component name="RunManager" selected="Go Test.TestDecode in egorkurito/TokenCoin/base58">
     <configuration name="TestDecode in egorkurito/TokenCoin/base58" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">

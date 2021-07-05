@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"egorkurito/TokenCoin/util"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -44,7 +45,7 @@ func InitBlockChain(address string) *BlockChain {
 	opts := badger.DefaultOptions(dbPath)
 	db, err := badger.Open(opts)
 	if err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
 	if err := db.Update(func(txn *badger.Txn) error {
@@ -53,18 +54,18 @@ func InitBlockChain(address string) *BlockChain {
 		fmt.Println("Genesis Created")
 
 		if err := txn.Set(genesis.Hash, genesis.Serialize()); err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 
 		if err := txn.Set([]byte("lh"), genesis.Hash); err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 
 		lastHash = genesis.Hash
 
 		return err
 	}); err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
 	chain := BlockChain{lastHash, db}
@@ -82,13 +83,13 @@ func ContinueBlockChain(address string) *BlockChain {
 	opts := badger.DefaultOptions(dbPath)
 	db, err := badger.Open(opts)
 	if err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
 	if err := db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		if err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 
 		if err := item.Value(func(val []byte) error {
@@ -96,12 +97,12 @@ func ContinueBlockChain(address string) *BlockChain {
 
 			return err
 		}); err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 
 		return err
 	}); err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
 	chain := BlockChain{lastHash, db}
@@ -114,18 +115,18 @@ func (chain *BlockChain) AddBlock(transactions []*Transaction) {
 	if err := chain.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		if err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 		if err = item.Value(func(val []byte) error {
 			lastHash = val
 
 			return nil
 		}); err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 		return err
 	}); err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
 	newBlock := CreateBlock(transactions, lastHash)
@@ -133,18 +134,18 @@ func (chain *BlockChain) AddBlock(transactions []*Transaction) {
 	if err := chain.Database.Update(func(transaction *badger.Txn) error {
 		err := transaction.Set(newBlock.Hash, newBlock.Serialize())
 		if err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 		err = transaction.Set([]byte("lh"), newBlock.Hash)
 		if err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 
 		chain.LastHash = newBlock.Hash
 
 		return err
 	}); err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 }
 
@@ -191,7 +192,7 @@ func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
 					}
 				}
 			}
-			if len(block.PrevHash) == 0 {
+			if len(block.PrevBlockHash) == 0 {
 				break
 			}
 		}
@@ -242,7 +243,7 @@ func (iterator *BlockChainIterator) Next() *Block {
 	if err := iterator.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(iterator.CurrentHash)
 		if err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 
 		err = item.Value(func(val []byte) error {
@@ -250,15 +251,15 @@ func (iterator *BlockChainIterator) Next() *Block {
 			return nil
 		})
 		if err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 
 		return err
 	}); err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
-	iterator.CurrentHash = block.PrevHash
+	iterator.CurrentHash = block.PrevBlockHash
 
 	return block
 }

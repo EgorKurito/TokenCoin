@@ -3,15 +3,20 @@ package blockchain
 import (
 	"bytes"
 	"crypto/sha256"
+	"egorkurito/TokenCoin/util"
 	"encoding/gob"
-	"log"
 )
 
 type Block struct {
-	Hash         []byte
-	Transactions []*Transaction
-	PrevHash     []byte
-	Nonce        int
+	Hash          []byte
+	Transactions  []*Transaction
+	PrevBlockHash []byte
+	Nonce         int
+	//Difficult	  int
+}
+
+func (b *Block) String() {
+
 }
 
 func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
@@ -30,16 +35,12 @@ func Genesis(coinbase *Transaction) *Block {
 	return CreateBlock([]*Transaction{coinbase}, []byte{})
 }
 
-func LogErrHandle(err error) {
-	log.Panicf("ERROR: %s\n", err)
-}
-
 func (b *Block) Serialize() []byte {
 	var res bytes.Buffer
 
 	encoder := gob.NewEncoder(&res)
 	if err := encoder.Encode(b); err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
 	return res.Bytes()
@@ -50,7 +51,7 @@ func Deserialize(data []byte) *Block {
 
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	if err := decoder.Decode(&block); err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
 	return &block

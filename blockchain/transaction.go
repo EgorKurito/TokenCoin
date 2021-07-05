@@ -3,6 +3,7 @@ package blockchain
 import (
 	"bytes"
 	"crypto/sha256"
+	"egorkurito/TokenCoin/util"
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
@@ -47,7 +48,7 @@ func (tx *Transaction) setID() {
 
 	encoder := gob.NewEncoder(&encoded)
 	if err := encoder.Encode(tx); err != nil {
-		LogErrHandle(err)
+		util.LogErrHandle(err)
 	}
 
 	hash = sha256.Sum256(encoded.Bytes())
@@ -71,7 +72,7 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
 	for txid, outs := range validOutputs {
 		txID, err := hex.DecodeString(txid)
 		if err != nil {
-			LogErrHandle(err)
+			util.LogErrHandle(err)
 		}
 
 		for _, out := range outs {
