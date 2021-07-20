@@ -1,6 +1,10 @@
 package blockchain
 
 import (
+	"bytes"
+	"errors"
+	"github.com/EgorKurito/TokenCoin/storage"
+	"log"
 
 	//  This is our database import
 	"encoding/hex"
@@ -8,9 +12,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/dgraph-io/badger"
-
 	"github.com/EgorKurito/TokenCoin/util"
+	"github.com/dgraph-io/badger"
 )
 
 const (
@@ -230,6 +233,66 @@ Work:
 		}
 	}
 	return accumulated, unspentOuts
+}
+
+func (chain *BlockChain) MineBlock(transactions []*Transaction) *Block {
+	for _, tx := range transactions {
+		if chain.VerifyTransaction(tx) != true {
+			util.LogErrHandle(fmt.Errorf("ERROR: Invalid transaction"))
+		}
+	}
+
+	lastHash, err := storage.GetLastBlock(chain.Database)
+	if err != nil {
+		util.LogErrHandle(err)
+	}
+
+	newBlock := CreateBlock(transactions, lastHash)
+
+	err = storage.SaveBlock(chain.Database, newBlock.Hash)
+	if err != nil {
+		util.LogErrHandle(err)
+	}
+	chain.LastHash = newBlock.Hash
+
+	return newBlock
+}
+
+// VerifyTransaction verifies transaction input signatures
+func (chain *BlockChain) VerifyTransaction(tx *Transaction) bool {
+	if tx.IsCoinbase() {
+		return true
+	}
+
+	prevTXs := make(map[string]Transaction)
+	for _, vin := range tx.Inputs {
+		prevTX, err := chain.FindTransaction(&vin.PreviousOutPoint.Hash)
+		if err != nil {
+			util.LogErrHandle(err)
+		}
+		prevTXs[prevTX.StringID()] = prevTX
+	}
+
+	return tx.Verify(prevTXs)
+}
+
+// FindTransaction finds a transaction by its ID
+func (chain *BlockChain) FindTransaction(ID *[]byte) (Transaction, error) {
+	chainIterator := chain.Iterator()
+
+	for {
+		block := chainIterator.Next()
+		for _, tx := range block.Transactions {
+			if bytes.Compare(tx.ID, *ID) == 0 {
+				return *tx, nil
+			}
+		}
+		if len(block.PrevBlockHash) == 0 {
+			break
+		}
+	}
+
+	return Transaction{}, errors.New("transaction is not found")
 }
 
 func dbExists(db string) bool {

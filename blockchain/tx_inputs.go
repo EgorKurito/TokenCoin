@@ -12,6 +12,10 @@ type OutPoint struct {
 	Hash []byte
 }
 
+func (o OutPoint) StringHash() string {
+	return string(o.Hash)
+}
+
 // NewOutPoint return a new token transaction
 func NewOutPoint(hash *[]byte, index int) *OutPoint {
 	return &OutPoint{

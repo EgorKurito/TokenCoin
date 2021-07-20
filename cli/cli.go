@@ -48,7 +48,7 @@ func (cli *CommandLine) createBlockChain(address string) {
 }
 
 func (cli *CommandLine) getBalance(address string) {
-	chain := blockchain.LoadBlockChain(address)
+	chain := blockchain.LoadBlockChain()
 	defer chain.Database.Close()
 
 	balance := 0
@@ -81,7 +81,7 @@ func (cli *CommandLine) validateArgs() {
 }
 
 func (cli *CommandLine) printChain() {
-	chain := blockchain.LoadBlockChain("")
+	chain := blockchain.LoadBlockChain()
 	defer chain.Database.Close()
 	iterator := chain.Iterator()
 
