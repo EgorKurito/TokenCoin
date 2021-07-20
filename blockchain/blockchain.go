@@ -1,13 +1,16 @@
 package blockchain
 
 import (
-	"egorkurito/TokenCoin/util"
+
+	//  This is our database import
 	"encoding/hex"
 	"fmt"
 	"os"
 	"runtime"
 
-	"github.com/dgraph-io/badger" // This is our database import
+	"github.com/dgraph-io/badger"
+
+	"github.com/EgorKurito/TokenCoin/util"
 )
 
 const (
@@ -158,7 +161,7 @@ func (chain *BlockChain) Iterator() *BlockChainIterator {
 	return &iterator
 }
 
-func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
+func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
 	var unspentTxs []Transaction
 
 	spentTXNs := make(map[string][]int)
@@ -180,15 +183,15 @@ func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
 						}
 					}
 				}
-				if out.CanBeUnlocked(address) {
+				if out.CanBeUnlocked(pubKeyHash) {
 					unspentTxs = append(unspentTxs, *tx)
 				}
 			}
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Inputs {
-					if in.CanUnlock(address) {
-						inTxID := hex.EncodeToString(in.TokenData)
-						spentTXNs[inTxID] = append(spentTXNs[inTxID], in.Out)
+					if in.CanUnlock(pubKeyHash) {
+						inTxID := hex.EncodeToString(in.PreviousOutPoint.Hash)
+						spentTXNs[inTxID] = append(spentTXNs[inTxID], in.PreviousOutPoint.ID)
 					}
 				}
 			}
@@ -201,12 +204,12 @@ func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
 	}
 }
 
-func (chain *BlockChain) FindUTXO(address string) []TxOutput {
+func (chain *BlockChain) FindUTXO(pubKeyHash []byte) []TxOutput {
 	var UTXOs []TxOutput
-	unspentTransactions := chain.FindUnspentTransactions(address)
+	unspentTransactions := chain.FindUnspentTransactions(pubKeyHash)
 	for _, tx := range unspentTransactions {
 		for _, out := range tx.Outputs {
-			if out.CanBeUnlocked(address) {
+			if out.CanBeUnlocked(pubKeyHash) {
 				UTXOs = append(UTXOs, out)
 			}
 		}
@@ -215,16 +218,16 @@ func (chain *BlockChain) FindUTXO(address string) []TxOutput {
 	return UTXOs
 }
 
-func (chain *BlockChain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
+func (chain *BlockChain) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {
 	unspentOuts := make(map[string][]int)
-	unspentTxs := chain.FindUnspentTransactions(address)
+	unspentTxs := chain.FindUnspentTransactions(pubKeyHash)
 	accumulated := 0
 
 Work:
 	for _, tx := range unspentTxs {
 		txID := hex.EncodeToString(tx.ID)
 		for outIdx, out := range tx.Outputs {
-			if out.CanBeUnlocked(address) && accumulated < amount {
+			if out.CanBeUnlocked(pubKeyHash) && accumulated < amount {
 				accumulated += out.Value
 				unspentOuts[txID] = append(unspentOuts[txID], outIdx)
 

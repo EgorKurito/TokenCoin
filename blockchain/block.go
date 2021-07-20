@@ -3,8 +3,9 @@ package blockchain
 import (
 	"bytes"
 	"crypto/sha256"
-	"egorkurito/TokenCoin/util"
 	"encoding/gob"
+
+	"github.com/EgorKurito/TokenCoin/util"
 )
 
 type Block struct {
@@ -12,11 +13,10 @@ type Block struct {
 	Transactions  []*Transaction
 	PrevBlockHash []byte
 	Nonce         int
-	//Difficult	  int
+	// Difficult	  int
 }
 
 func (b *Block) String() {
-
 }
 
 func CreateBlock(txs []*Transaction, prevHash []byte) *Block {

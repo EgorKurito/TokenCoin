@@ -1,14 +1,15 @@
 package cli
 
 import (
-	"egorkurito/myBlockChain/blockchain"
-	"egorkurito/myBlockChain/blockchain/wallet"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"runtime"
 	"strconv"
+
+	"github.com/EgorKurito/TokenCoin/blockchain"
+	"github.com/EgorKurito/TokenCoin/blockchain/wallet"
 )
 
 type CommandLine struct{}
@@ -18,7 +19,7 @@ func (cli *CommandLine) printUsage() {
 	fmt.Println("getbalance -address ADDRESS - get balance for ADDRESS")
 	fmt.Println("createblockchain -address ADDRESS creates a blockchain and rewards the mining fee")
 	fmt.Println("printchain - Prints the blocks in the chain")
-	fmt.Println("send -from FROM -to TO -amount AMOUNT - Send amount of coins from one address to another")
+	// fmt.Println("send -from FROM -to TO -amount AMOUNT - Send amount of coins from one address to another")
 	fmt.Println("createwallet - Creates a new wallet")
 	fmt.Println("listaddresses - Lists the addresses in the wallet file")
 }
@@ -51,7 +52,8 @@ func (cli *CommandLine) getBalance(address string) {
 	defer chain.Database.Close()
 
 	balance := 0
-	UTXOs := chain.FindUTXO(address)
+	pubKeyHash := wallet.PublicKeyHash([]byte(address))
+	UTXOs := chain.FindUTXO(pubKeyHash)
 
 	for _, out := range UTXOs {
 		balance += out.Value
@@ -60,15 +62,16 @@ func (cli *CommandLine) getBalance(address string) {
 	fmt.Printf("Balance of %s: %d\n", address, balance)
 }
 
-func (cli *CommandLine) send(from, to string, amount int) {
-	chain := blockchain.ContinueBlockChain(from)
-	defer chain.Database.Close()
-
-	tx := blockchain.NewTransaction(from, to, amount, chain)
-
-	chain.AddBlock([]*blockchain.Transaction{tx})
-	fmt.Println("Success!")
-}
+//func (cli *CommandLine) send(from, to string, amount int) {
+//	chain := blockchain.ContinueBlockChain(from)
+//	defer chain.Database.Close()
+//
+//
+//	tx := blockchain.NewTransaction(from, to, amount, chain)
+//
+//	chain.AddBlock([]*blockchain.Transaction{tx})
+//	fmt.Println("Success!")
+//}
 
 func (cli *CommandLine) validateArgs() {
 	if len(os.Args) < 2 {
@@ -84,13 +87,13 @@ func (cli *CommandLine) printChain() {
 
 	for {
 		block := iterator.Next()
-		fmt.Printf("Previous hash: %x\n", block.PrevHash)
+		fmt.Printf("Previous hash: %x\n", block.PrevBlockHash)
 		fmt.Printf("hash: %x\n", block.Hash)
 		pow := blockchain.NewProofOfWork(block)
 		fmt.Printf("Pow: %s\n", strconv.FormatBool(pow.Validate()))
 		fmt.Println()
 
-		if len(block.PrevHash) == 0 {
+		if len(block.PrevBlockHash) == 0 {
 			break
 		}
 	}
@@ -108,9 +111,9 @@ func (cli *CommandLine) Run() {
 
 	getBalanceAddress := getBalanceCmd.String("address", "", "The address to get balance for")
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address to send genesis block reward to")
-	sendFrom := sendCmd.String("from", "", "Source wallet address")
-	sendTo := sendCmd.String("to", "", "Destination wallet address")
-	sendAmount := sendCmd.Int("amount", 0, "Amount to send")
+	// sendFrom := sendCmd.String("from", "", "Source wallet address")
+	// sendTo := sendCmd.String("to", "", "Destination wallet address")
+	// sendAmount := sendCmd.Int("amount", 0, "Amount to send")
 
 	switch os.Args[1] {
 	case "getbalance":
@@ -168,14 +171,14 @@ func (cli *CommandLine) Run() {
 		cli.printChain()
 	}
 
-	if sendCmd.Parsed() {
-		if *sendFrom == "" || *sendTo == "" || *sendAmount <= 0 {
-			sendCmd.Usage()
-			runtime.Goexit()
-		}
-
-		cli.send(*sendFrom, *sendTo, *sendAmount)
-	}
+	//if sendCmd.Parsed() {
+	//	if *sendFrom == "" || *sendTo == "" || *sendAmount <= 0 {
+	//		sendCmd.Usage()
+	//		runtime.Goexit()
+	//	}
+	//
+	//	cli.send(*sendFrom, *sendTo, *sendAmount)
+	//}
 	if listAddressesCmd.Parsed() {
 		cli.listAddresses()
 	}

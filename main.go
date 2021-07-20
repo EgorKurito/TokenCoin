@@ -1,8 +1,9 @@
 package main
 
 import (
-	"egorkurito/myBlockChain/cli"
 	"os"
+
+	"github.com/EgorKurito/TokenCoin/cli"
 )
 
 func main() {

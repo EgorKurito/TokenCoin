@@ -5,9 +5,11 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
-	"egorkurito/TokenCoin/base58"
-	"golang.org/x/crypto/ripemd160"
+	"fmt"
 	"log"
+
+	"github.com/EgorKurito/TokenCoin/base58"
+	"golang.org/x/crypto/ripemd160"
 )
 
 const (
@@ -70,4 +72,7 @@ func MakeWallet() *Wallet {
 	return &wallet
 }
 
-
+// GetStringAddress returns wallet address string format
+func (w Wallet) GetStringAddress() string {
+	return fmt.Sprintf("%s", w.Address())
+}

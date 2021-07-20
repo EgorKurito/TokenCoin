@@ -26,7 +26,7 @@ func (ws *Wallets) SaveFile() {
 		log.Panic(err)
 	}
 
-	if err := ioutil.WriteFile(walletFile, content.Bytes(), 0644); err != nil {
+	if err := ioutil.WriteFile(walletFile, content.Bytes(), 0o644); err != nil {
 		log.Panic(err)
 	}
 }

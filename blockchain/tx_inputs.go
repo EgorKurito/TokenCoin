@@ -1,5 +1,11 @@
 package blockchain
 
+import (
+	"bytes"
+
+	"github.com/EgorKurito/TokenCoin/blockchain/wallet"
+)
+
 // OutPoint is token data
 type OutPoint struct {
 	ID   int
@@ -17,7 +23,7 @@ func NewOutPoint(hash *[]byte, index int) *OutPoint {
 // TxInput represents a transaction input
 type TxInput struct {
 	PreviousOutPoint OutPoint
-	PubKey           []byte
+	PubKeyHash       []byte
 	Signature        []byte
 }
 
@@ -25,9 +31,14 @@ type TxInput struct {
 func NewTxInput(prevOut *OutPoint, sign, pubKey []byte) *TxInput {
 	newTxInput := &TxInput{
 		PreviousOutPoint: *prevOut,
-		PubKey:           pubKey,
+		PubKeyHash:       pubKey,
 		Signature:        sign,
 	}
 
 	return newTxInput
+}
+
+func (in *TxInput) CanUnlock(pubKeyHash []byte) bool {
+	lockingHash := wallet.PublicKeyHash(in.PubKeyHash)
+	return bytes.Compare(lockingHash, pubKeyHash) == 0
 }

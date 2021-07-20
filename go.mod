@@ -1,4 +1,4 @@
-module egorkurito/TokenCoin
+module github.com/EgorKurito/TokenCoin
 
 go 1.15
 

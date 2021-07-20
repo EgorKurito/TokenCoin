@@ -1,7 +1,7 @@
 package base58
 
 import (
-	"egorkurito/TokenCoin/util"
+	"github.com/EgorKurito/TokenCoin/util"
 	"github.com/mr-tron/base58"
 )
 
