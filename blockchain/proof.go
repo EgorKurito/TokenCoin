@@ -13,53 +13,28 @@ import (
 const targetBits = 16
 
 type ProofOfWork struct {
-	Block  *Block
 	Target *big.Int
 }
 
 // NewProofOfWork builds and returns a ProofOfWork
-func NewProofOfWork(b *Block) *ProofOfWork {
+func NewProofOfWork() *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
 
-	pow := &ProofOfWork{b, target}
+	pow := &ProofOfWork{target}
 
 	return pow
 }
 
-func ToHex(num int64) []byte {
-	buff := new(bytes.Buffer)
-	err := binary.Write(buff, binary.BigEndian, num)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	return buff.Bytes()
-}
-
-func (pow *ProofOfWork) InitData(nonce int) []byte {
-	data := bytes.Join(
-		[][]byte{
-			pow.Block.PrevBlockHash,
-			pow.Block.HashTransactions(),
-			ToHex(int64(nonce)),
-			ToHex(int64(Difficulty)),
-		},
-		[]byte{},
-	)
-
-	return data
-}
-
-func (pow *ProofOfWork) Run() (int, []byte) {
+// Run performs a proof-of-work
+func (pow *ProofOfWork) Run(prevBlockHash, TXsHash []byte) (int, []byte) {
 	var intHash big.Int
 	var hash [32]byte
 
 	nonce := 0
 
 	for nonce < math.MaxInt64 {
-		data := pow.InitData(nonce)
-		hash = sha256.Sum256(data)
+		hash = pow.initDataHash(prevBlockHash, TXsHash, nonce)
 
 		fmt.Printf("\r%x", hash)
 		intHash.SetBytes(hash[:])
@@ -70,18 +45,43 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 			nonce++
 		}
 	}
-	fmt.Println()
+	fmt.Println("\n")
 
 	return nonce, hash[:]
 }
 
-func (pow *ProofOfWork) Validate() bool {
+func (pow *ProofOfWork) initDataHash(prevBlockHash, TXsHash []byte, nonce int) [32]byte {
+	data := bytes.Join(
+		[][]byte{
+			prevBlockHash,
+			TXsHash,
+			IntToHex(int64(nonce)),
+			IntToHex(int64(targetBits)),
+		},
+		[]byte{},
+	)
+
+	return sha256.Sum256(data)
+}
+
+// Validate validates block's Pow
+func (pow *ProofOfWork) Validate(prevBlockHash, TXsHash []byte, nonce int) bool {
 	var intHash big.Int
 
-	data := pow.InitData(pow.Block.Nonce)
+	hash := pow.initDataHash(prevBlockHash, TXsHash, nonce)
 
-	hash := sha256.Sum256(data)
 	intHash.SetBytes(hash[:])
 
 	return intHash.Cmp(pow.Target) == -1
+}
+
+// IntToHex converts an int64 to a byte array
+func IntToHex(num int64) []byte {
+	buff := new(bytes.Buffer)
+	err := binary.Write(buff, binary.BigEndian, num)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return buff.Bytes()
 }

@@ -30,8 +30,10 @@ func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
 		defaultDifficult,
 	}
 
-	pow := NewProofOfWork(block)
-	nonce, hash := pow.Run()
+	hashTx := block.HashTransactions()
+
+	pow := NewProofOfWork()
+	nonce, hash := pow.Run(prevHash, hashTx)
 
 	block.Hash = hash[:]
 	block.Nonce = nonce

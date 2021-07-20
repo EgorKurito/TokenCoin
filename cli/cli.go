@@ -89,8 +89,8 @@ func (cli *CommandLine) printChain() {
 		block := iterator.Next()
 		fmt.Printf("Previous hash: %x\n", block.PrevBlockHash)
 		fmt.Printf("hash: %x\n", block.Hash)
-		pow := blockchain.NewProofOfWork(block)
-		fmt.Printf("Pow: %s\n", strconv.FormatBool(pow.Validate()))
+		pow := blockchain.NewProofOfWork()
+		fmt.Printf("Pow: %s\n", strconv.FormatBool(pow.Validate(block.PrevBlockHash, block.Hash, block.Nonce)))
 		fmt.Println()
 
 		if len(block.PrevBlockHash) == 0 {
