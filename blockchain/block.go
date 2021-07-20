@@ -35,14 +35,18 @@ func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
 	pow := NewProofOfWork()
 	nonce, hash := pow.Run(prevHash, hashTx)
 
-	block.Hash = hash[:]
+	block.Hash = hash
 	block.Nonce = nonce
 
 	return block
 }
 
-func Genesis(coinbase *Transaction) *Block {
-	return CreateBlock([]*Transaction{coinbase}, []byte{})
+// NewGenesisBlock creates and returns genesis Block
+func NewGenesisBlock(address string) *Block {
+	coinbaseTX := NewCoinbaseTX(address, genesisData)
+	block := CreateBlock([]*Transaction{coinbaseTX}, []byte{})
+
+	return block
 }
 
 func (b *Block) Serialize() []byte {

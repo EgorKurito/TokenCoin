@@ -20,12 +20,11 @@ type Transaction struct {
 	Outputs []TxOutput
 }
 
-func CoinbaseTX(toAddress, data string) *Transaction {
+func NewCoinbaseTX(toAddress, data string) *Transaction {
 	if data == "" {
 		data = fmt.Sprintf("Coins to %s", toAddress)
 	}
 	txIn := NewTxInput(NewOutPoint(&[]byte{}, -1), nil, []byte(data))
-
 	txOut := NewTxOutput(reward, toAddress)
 
 	tx := Transaction{

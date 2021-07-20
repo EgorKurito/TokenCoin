@@ -17,7 +17,7 @@ const (
 	dbPath = "./tmp/blocks"
 	dbFile = "./tmp/blocks/MANIFEST"
 
-	genesisData = "First Transaction from Genesis"
+	genesisData = "First Transaction from NewGenesisBlock"
 )
 
 type BlockChain struct {
@@ -25,22 +25,11 @@ type BlockChain struct {
 	Database *badger.DB
 }
 
-type BlockChainIterator struct {
-	CurrentHash []byte
-	Database    *badger.DB
-}
-
-func DBExists(db string) bool {
-	if _, err := os.Stat(db); os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
+// InitBlockChain creates a new blockchain with genesisBlock
 func InitBlockChain(address string) *BlockChain {
-	var lastHash []byte
+	var lastBlockHash []byte
 
-	if DBExists(dbFile) {
+	if dbExists(dbFile) {
 		fmt.Println("blockchain already exists")
 		runtime.Goexit()
 	}
@@ -52,9 +41,8 @@ func InitBlockChain(address string) *BlockChain {
 	}
 
 	if err := db.Update(func(txn *badger.Txn) error {
-		cbtx := CoinbaseTX(address, genesisData)
-		genesis := Genesis(cbtx)
-		fmt.Println("Genesis Created")
+		genesis := NewGenesisBlock(address)
+		fmt.Println("NewGenesisBlock Created")
 
 		if err := txn.Set(genesis.Hash, genesis.Serialize()); err != nil {
 			util.LogErrHandle(err)
@@ -64,21 +52,24 @@ func InitBlockChain(address string) *BlockChain {
 			util.LogErrHandle(err)
 		}
 
-		lastHash = genesis.Hash
+		lastBlockHash = genesis.Hash
 
 		return err
 	}); err != nil {
 		util.LogErrHandle(err)
 	}
 
-	chain := BlockChain{lastHash, db}
+	chain := BlockChain{lastBlockHash, db}
+	fmt.Println("CreateBlockchain Success!")
+
 	return &chain
 }
 
-func ContinueBlockChain(address string) *BlockChain {
+// LoadBlockChain load Blockchain
+func LoadBlockChain() *BlockChain {
 	var lastHash []byte
 
-	if DBExists(dbFile) == false {
+	if dbExists(dbFile) == false {
 		fmt.Println("No blockchain found, please create one first")
 		runtime.Goexit()
 	}
@@ -112,6 +103,7 @@ func ContinueBlockChain(address string) *BlockChain {
 	return &chain
 }
 
+// AddBlock add the block into the blockchain
 func (chain *BlockChain) AddBlock(transactions []*Transaction) {
 	var lastHash []byte
 
@@ -240,29 +232,9 @@ Work:
 	return accumulated, unspentOuts
 }
 
-func (iterator *BlockChainIterator) Next() *Block {
-	var block *Block
-
-	if err := iterator.Database.View(func(txn *badger.Txn) error {
-		item, err := txn.Get(iterator.CurrentHash)
-		if err != nil {
-			util.LogErrHandle(err)
-		}
-
-		err = item.Value(func(val []byte) error {
-			block = Deserialize(val)
-			return nil
-		})
-		if err != nil {
-			util.LogErrHandle(err)
-		}
-
-		return err
-	}); err != nil {
-		util.LogErrHandle(err)
+func dbExists(db string) bool {
+	if _, err := os.Stat(db); os.IsNotExist(err) {
+		return false
 	}
-
-	iterator.CurrentHash = block.PrevBlockHash
-
-	return block
+	return true
 }
