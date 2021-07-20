@@ -3,6 +3,7 @@ package blockchain
 import (
 	"bytes"
 	"crypto/sha256"
+	"egorkurito/TokenCoin/blockchain/wallet"
 	"egorkurito/TokenCoin/util"
 	"encoding/gob"
 	"encoding/hex"
@@ -22,11 +23,7 @@ func CoinbaseTX(toAddress, data string) *Transaction {
 	if data == "" {
 		data = fmt.Sprintf("Coins to %s", toAddress)
 	}
-	txIn := TxInput{
-		ID:  []byte{},
-		Out: -1,
-		Sig: data,
-	}
+	txIn := NewTxInput(NewOutPoint(&[32]byte{}, -1), nil, []byte(data))
 
 	txOut := TxOutput{
 		Value:  reward,
@@ -35,7 +32,7 @@ func CoinbaseTX(toAddress, data string) *Transaction {
 
 	tx := Transaction{
 		ID:      nil,
-		Inputs:  []TxInput{txIn},
+		Inputs:  []TxInput{*txIn},
 		Outputs: []TxOutput{txOut},
 	}
 
@@ -55,15 +52,17 @@ func (tx *Transaction) setID() {
 	tx.ID = hash[:]
 }
 
+// IsCoinbase check transaction
+// ToDo: method PreviousOutPoint.Hash.IsEqual
 func (tx *Transaction) IsCoinbase() bool {
-	return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].Out == -1
+	return len(tx.Inputs) == 1 &&  tx.Inputs[0].PreviousOutPoint.ID == -1
 }
 
-func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction {
+func NewTransaction(from *wallet.Wallet, to string, amount int, chain *BlockChain) *Transaction {
 	var inputs []TxInput
 	var outputs []TxOutput
 
-	acc, validOutputs := chain.FindSpendableOutputs(from, amount)
+	acc, validOutputs := chain.FindSpendableOutputs("from", amount)
 
 	if acc < amount {
 		log.Panic("Error: Not enough funds!")
@@ -76,7 +75,7 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
 		}
 
 		for _, out := range outs {
-			input := TxInput{txID, out, from}
+			input := TxInput{*NewOutPoint(&txID, out), from.PublicKey, nil}
 			inputs = append(inputs, input)
 		}
 	}

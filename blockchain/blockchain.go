@@ -187,7 +187,7 @@ func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Inputs {
 					if in.CanUnlock(address) {
-						inTxID := hex.EncodeToString(in.ID)
+						inTxID := hex.EncodeToString(in.TokenData)
 						spentTXNs[inTxID] = append(spentTXNs[inTxID], in.Out)
 					}
 				}
