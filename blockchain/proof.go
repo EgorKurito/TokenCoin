@@ -10,16 +10,17 @@ import (
 	"math/big"
 )
 
-const Difficulty = 18
+const targetBits = 16
 
 type ProofOfWork struct {
 	Block  *Block
 	Target *big.Int
 }
 
+// NewProofOfWork builds and returns a ProofOfWork
 func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
-	target.Lsh(target, uint(256-Difficulty))
+	target.Lsh(target, uint(256-targetBits))
 
 	pow := &ProofOfWork{b, target}
 

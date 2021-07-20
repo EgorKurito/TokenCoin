@@ -4,23 +4,31 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"time"
 
 	"github.com/EgorKurito/TokenCoin/util"
 )
 
+const defaultDifficult = 10
+
 type Block struct {
+	Timestamp     int64
 	Hash          []byte
 	Transactions  []*Transaction
 	PrevBlockHash []byte
 	Nonce         int
-	// Difficult	  int
-}
-
-func (b *Block) String() {
+	Difficult     int
 }
 
 func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
-	block := &Block{[]byte{}, txs, prevHash, 0}
+	block := &Block{
+		time.Now().Unix(),
+		[]byte{},
+		txs,
+		prevHash,
+		0,
+		defaultDifficult,
+	}
 
 	pow := NewProofOfWork(block)
 	nonce, hash := pow.Run()
@@ -57,6 +65,8 @@ func Deserialize(data []byte) *Block {
 	return &block
 }
 
+// HashTransactions returns a hash of the transactions in the block
+// ToDo: add merkleTree
 func (b *Block) HashTransactions() []byte {
 	var txHashes [][]byte
 	var txHash [32]byte
